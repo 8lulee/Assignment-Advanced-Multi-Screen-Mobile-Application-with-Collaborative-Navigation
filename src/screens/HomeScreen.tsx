@@ -1,167 +1,128 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable, ScrollView } from 'react-native';
+import * as React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Chip from '../components/Chip';
-import RestaurantCard from '../components/RestaurantCard';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ScrollView,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Feather, Ionicons } from '@expo/vector-icons';
+
+import Chip from '../components/Chip';
+import RestaurantCard from '../components/RestaurantCard';
+import { categories } from '../data/categories';
+import { restaurants } from '../data/restaurants';
+import type { Restaurant } from '../types/models';
 import type { RootStackParamList } from '../navigation/types';
 
-interface Restaurant {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviews: number;
-  deliveryFee: string;
-  eta: string;
-  promo?: string;
-}
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const restaurants: Restaurant[] = [
-  {
-    id: 'boddy-chao',
-    name: "Boddy Chao's Restaurant",
-    image: '../../assets/restaurants/boddy-chao.jpeg',
-    rating: 4.5,
-    reviews: 240,
-    deliveryFee: '$3',
-    eta: '30‑45 min',
-    promo: 'Free Pizza',
-  },
-  {
-    id: '2',
-    name: 'Sushi Hub',
-    image: '../../assets/restaurants/Sushi-Hub.jpeg',
-    rating: 4.2,
-    reviews: 190,
-    deliveryFee: '$5',
-    eta: '25‑35 min',
-  },
-  {
-    id: '3',
-    name: 'Burger King',
-    image: '../../assets/restaurants/Burger-King.jpeg',
-    rating: 4.0,
-    reviews: 180,
-    deliveryFee: '$2',
-    eta: '20‑30 min',
-    promo: '20% OFF',
-  },
-];
+const FILTERS = ['Uber One', 'Pickup', 'Offers', 'Under 30 min'] as const;
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<Nav>();
+  const [selectedCategory, setSelectedCategory] = React.useState<string>('all');
+  const [selectedFilter, setSelectedFilter] = React.useState<string>('Uber One');
 
-  const renderItem = ({ item }: { item: Restaurant; index: number }) => (
-    <RestaurantCard
-      restaurant={item}
-      onPress={() =>
-        navigation.navigate('RestaurantDetails', {
-          id: item.id,
-          name: item.name,
-        })
-      }
-    />
-  );
+  const onPressRestaurant = (r: Restaurant) => {
+    // Only navigation is required for the assignment.
+    navigation.navigate('RestaurantDetails', { id: r.id, name: r.name });
+  };
 
-  const header = () => (
-    <View style={styles.headerContainer}>
-      <View style={styles.topBar}>
-        <View style={styles.locationContainer}>
-          <Feather name="chevron-down" size={20} color="#000" />
-          <Text style={styles.locationText}>Southern Alberta Ins...</Text>
-        </View>
-        <Pressable onPress={() => {}} style={styles.bellButton}>
-          <Ionicons name="notifications-outline" size={24} color="#000" />
-        </Pressable>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRowContainer}>
-        <Chip label="All" selected={true} />
-        <Chip label="Rides" selected={false} />
-        <Chip label="Flowers" selected={false} />
-        <Chip label="Grocery" selected={false} />
-      </ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRowContainer}>
-        <Chip label="Uber One" selected={false} />
-        <Chip label="Pickup" selected={false} />
-        <Chip label="Offers" selected={false} />
-        <Chip label="Under $30" selected={false} />
-      </ScrollView>
-      <View style={styles.resultsRow}>
-        <Text style={styles.resultsText}>451 results</Text>
-        <Pressable style={styles.resetButton} onPress={() => {}}
-          ><Text style={styles.resetButtonText}>Reset</Text>
-        </Pressable>
-      </View>
-    </View>
+  const renderRestaurant = ({ item }: { item: Restaurant }) => (
+    <Pressable onPress={() => onPressRestaurant(item)} style={styles.cardPressable}>
+      <RestaurantCard restaurant={item} />
+    </Pressable>
   );
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.safe}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.locationTitle} numberOfLines={1}>
+            Southern Alberta Ins...
+          </Text>
+          <Ionicons name="chevron-down" size={16} color="#111" />
+        </View>
+
+        <Pressable style={styles.headerRight} accessibilityLabel="Notifications">
+          <Ionicons name="notifications-outline" size={22} color="#111" />
+        </Pressable>
+      </View>
+
+      {/* Category chips */}
+      <View style={styles.chipsBlock}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+          {categories.map((c) => (
+            <Chip
+              key={c.key}
+              label={c.label}
+              icon={c.icon}
+              selected={selectedCategory === c.key}
+              onPress={() => setSelectedCategory(c.key)}
+            />
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Filter chips */}
+      <View style={styles.filtersBlock}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+          {FILTERS.map((f) => (
+            <Chip
+              key={f}
+              label={f}
+              selected={selectedFilter === f}
+              onPress={() => setSelectedFilter(f)}
+            />
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Results line */}
+      <View style={styles.resultsRow}>
+        <Text style={styles.resultsText}>{restaurants.length} results</Text>
+      </View>
+
+      {/* Restaurant list */}
       <FlatList
-        style={styles.list}
         data={restaurants}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+        renderItem={renderRestaurant}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={header}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  list: {
-    flex: 1,
-  },
-  headerContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationText: {
-    marginLeft: 4,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  bellButton: {
-    padding: 8,
-  },
-  chipRowContainer: {
-    marginTop: 8,
-    marginHorizontal: -8,
-  },
-  resultsRow: {
-    marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  resultsText: {
-    fontSize: 14,
-  },
-  resetButton: {
-    backgroundColor: '#eee',
+  safe: { flex: 1, backgroundColor: '#FFF' },
+
+  header: {
     paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 50,
+    paddingTop: 6,
+    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  resetButtonText: {
-    fontSize: 14,
-    color: '#000',
-  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
+  locationTitle: { fontSize: 16, fontWeight: '700', color: '#111', maxWidth: 220 },
+  headerRight: { padding: 6 },
+
+  chipsBlock: { paddingHorizontal: 16, paddingBottom: 10 },
+  filtersBlock: { paddingHorizontal: 16, paddingBottom: 10 },
+  chipsRow: { paddingRight: 16 },
+
+  resultsRow: { paddingHorizontal: 16, paddingBottom: 8 },
+  resultsText: { fontSize: 14, fontWeight: '700', color: '#111' },
+
+  listContent: { paddingHorizontal: 16, paddingBottom: 20 },
+  cardPressable: { borderRadius: 16 },
 });

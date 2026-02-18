@@ -1,43 +1,68 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
+import * as React from 'react';
+import { Pressable, Text, StyleSheet, View, Image, type ImageSourcePropType } from 'react-native';
 
-interface ChipProps {
+type Props = {
   label: string;
   selected?: boolean;
+  icon?: ImageSourcePropType;
   onPress?: () => void;
-  style?: ViewStyle;
-}
-
-const Chip: React.FC<ChipProps> = ({ label, selected = false, onPress, style }) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.container, selected && styles.selected, style]}
-    >
-      <Text style={[styles.text, selected && styles.textSelected]}>{label}</Text>
-    </TouchableOpacity>
-  );
 };
+
+export default function Chip({ label, selected = false, icon, onPress }: Props) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.container, selected ? styles.selected : styles.unselected]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      {icon ? (
+        <Image source={icon} style={styles.icon} resizeMode="contain" />
+      ) : (
+        <View style={styles.iconPlaceholder} />
+      )}
+      <Text style={[styles.label, selected ? styles.labelSelected : styles.labelUnselected]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#F0F0F0',
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
-    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 999,
+    marginRight: 10,
   },
   selected: {
-    backgroundColor: '#FF2D55',
+    backgroundColor: '#ECECEC',
   },
-  text: {
-    color: '#333',
+  unselected: {
+    backgroundColor: '#F6F6F6',
+  },
+  icon: {
+    width: 18,
+    height: 18,
+    marginRight: 8,
+  },
+  iconPlaceholder: {
+    width: 18,
+    height: 18,
+    marginRight: 8,
+    borderRadius: 4,
+    backgroundColor: '#DDD',
+  },
+  label: {
     fontSize: 14,
-    textAlign: 'center',
+    fontWeight: '600',
   },
-  textSelected: {
-    color: '#FFF',
+  labelSelected: {
+    color: '#111',
+  },
+  labelUnselected: {
+    color: '#444',
   },
 });
-
-export default Chip;

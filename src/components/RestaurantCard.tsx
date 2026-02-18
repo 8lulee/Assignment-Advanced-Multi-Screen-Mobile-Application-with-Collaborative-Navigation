@@ -1,110 +1,81 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import Chip from './Chip';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/types';
+import * as React from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import type { Restaurant } from '../types/models';
 
-interface Restaurant {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviews: number;
-  deliveryFee: string;
-  eta: string;
-  promo?: string;
-}
-
-interface RestaurantCardProps {
+type Props = {
   restaurant: Restaurant;
-  onPress?: () => void;
-}
-
-const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onPress }) => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  const handlePress = () => {
-    if (onPress) {
-      onPress();
-      return;
-    }
-    navigation.navigate('RestaurantDetails', {
-      id: restaurant.id,
-      name: restaurant.name,
-    });
-  };
-
-  return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9} style={styles.cardContainer}>
-      <Image source={{ uri: restaurant.image }} style={styles.image} />
-      <View style={styles.infoContainer}>
-        <View style={styles.topRow}>
-          <Text style={styles.name}>{restaurant.name}</Text>
-          <Text style={styles.heartIcon}>❤️</Text>
-        </View>
-        <Text style={styles.deliveryEta}>{restaurant.deliveryFee} • {restaurant.eta}</Text>
-        <View style={styles.ratingRow}>
-          <Text style={styles.rating}>{restaurant.rating} ★ {restaurant.reviews} reviews</Text>
-        </View>
-        {
-          restaurant.promo ?
-            <Chip label={restaurant.promo} style={styles.promoBadge} selected={true} />
-            : null
-        }
-      </View>
-    </TouchableOpacity>
-  );
 };
 
+export default function RestaurantCard({ restaurant }: Props) {
+  const imageSource =
+    typeof restaurant.image === 'string' ? { uri: restaurant.image } : restaurant.image;
+
+  return (
+    <View style={styles.card}>
+      <Image source={imageSource} style={styles.image} resizeMode="cover" />
+      <View style={styles.content}>
+        <View style={styles.row}>
+          <Text style={styles.name} numberOfLines={1}>
+            {restaurant.name}
+          </Text>
+          <Text style={styles.rating}>
+            {restaurant.rating.toFixed(1)} ({restaurant.reviews})
+          </Text>
+        </View>
+
+        <Text style={styles.meta}>
+          {restaurant.deliveryFee} Delivery Fee • {restaurant.eta}
+        </Text>
+
+        {restaurant.promo ? <Text style={styles.promo}>{restaurant.promo}</Text> : null}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  cardContainer: {
-    marginVertical: 8,
-    borderRadius: 10,
+  card: {
     backgroundColor: '#FFF',
+    borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#EEE',
   },
   image: {
     width: '100%',
-    height: 150,
+    height: 160,
+    backgroundColor: '#EEE',
   },
-  infoContainer: {
+  content: {
     padding: 12,
   },
-  topRow: {
+  row: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
   },
   name: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  heartIcon: {
-    color: '#FF2D55',
-  },
-  deliveryEta: {
-    marginTop: 4,
-    color: '#666',
-    fontSize: 14,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
   },
   rating: {
+    fontSize: 13,
+    fontWeight: '600',
     color: '#333',
-    fontSize: 14,
   },
-  promoBadge: {
+  meta: {
     marginTop: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: '#FF2D55',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    fontSize: 13,
+    color: '#666',
+  },
+  promo: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111',
   },
 });
-
-export default RestaurantCard;
