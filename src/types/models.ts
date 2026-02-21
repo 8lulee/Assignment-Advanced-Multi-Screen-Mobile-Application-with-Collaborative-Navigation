@@ -16,3 +16,11 @@ export type Category = {
   label: string;
   icon: ImageSourcePropType;
 };
+
+export type Promotion = {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: ImageSourcePropType;
+};

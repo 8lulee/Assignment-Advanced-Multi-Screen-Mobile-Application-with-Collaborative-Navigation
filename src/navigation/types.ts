@@ -8,3 +8,4 @@ export type TabParamList = {
   Home: undefined;
   Profile: undefined;
 };
+
